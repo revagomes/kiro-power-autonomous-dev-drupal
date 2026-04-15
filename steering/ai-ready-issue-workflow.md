@@ -71,7 +71,7 @@ curl --silent --fail \
   | jq '.[] | {id: .iid, title: .title, description: .description}'
 ```
 
-The `make auto-pilot-fetch` command writes eligible issues to `.auto-pilot/tasks.yaml` in the standard format.
+The `/auto-pilot fetch` command writes eligible issues to `.auto-pilot/tasks.yaml` in the standard format.
 
 ## After MR Creation
 

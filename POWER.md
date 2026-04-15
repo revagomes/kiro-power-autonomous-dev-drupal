@@ -22,6 +22,17 @@ This power is a profile on top of [kiro-power-autonomous-dev](https://github.com
 1. `kiro-power-autonomous-dev` — generic orchestration engine
 2. `kiro-power-autonomous-dev-drupal` — this EC Europa profile
 
+## Slash Commands
+
+This profile overrides two slash commands from the generic power:
+
+| Command | What changes |
+|---------|-------------|
+| `/auto-pilot run` | Quality checks use EC Europa Toolkit + Docker; commit format enforced as JIRA |
+| `/auto-pilot fetch` | Fetches GitLab issues labeled `ai-ready` via GitLab REST API |
+
+The other commands (`dry-run`, `status`, `clean`) are inherited unchanged from the generic power.
+
 ## Onboarding
 
 ### Step 1: Install the generic power first
@@ -77,7 +88,7 @@ Example: `PROJ-123: Add validation service for user registration.`
 
 ### Module prefix
 
-Custom modules use a project-specific prefix (e.g., `my_`, `ejp_`). All custom code lives in `lib/modules/`.
+Custom modules use a project-specific prefix (e.g., `my_`). All custom code lives in `lib/modules/`.
 
 ### Config as code
 
