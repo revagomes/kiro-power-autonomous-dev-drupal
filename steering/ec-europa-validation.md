@@ -50,25 +50,16 @@ docker compose exec web vendor/bin/phpunit --group=my_module .auto-pilot/task-00
 docker compose exec web vendor/bin/phpunit --coverage-text .auto-pilot/task-001/lib/modules/my_module/tests/
 ```
 
-## AI Validation Commands (ejp_ai_docs)
+## AI Validation Commands (project-specific)
 
-If the project has the `ejp_ai_docs` module installed:
+If your project has custom AI validation commands (e.g., a Drush command or custom script), run them after the toolkit checks:
 
 ```bash
-# Validate coding standards
-docker compose exec web drush ai:validate-code phpcs .auto-pilot/task-001/lib/modules/my_module/
-
-# Validate module structure
-docker compose exec web drush ai:validate-code module .auto-pilot/task-001/lib/modules/my_module
-
-# Check config sync status
-docker compose exec web drush ai:validate-code config-sync
-
-# Full validation
-docker compose exec web drush ai:validate
+# Example — replace with your project's validation command
+docker compose exec web drush ai:validate-code phpcs $MODULE_PATH
 ```
 
-If drush commands fail (Drupal not bootstrapped), fall back to toolkit commands above.
+If no custom validation exists, the toolkit checks above are sufficient.
 
 ## Full Pre-MR Validation Sequence
 

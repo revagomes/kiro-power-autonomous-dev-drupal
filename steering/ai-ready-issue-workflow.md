@@ -33,7 +33,7 @@ Agents must not pick up architectural, security, or high-risk tasks. Before clai
 - Changing authentication or authorization logic
 - Modifying database schema in a breaking way
 - Refactoring a core service used by many modules
-- Any task touching `config/sync/user.role.*.yml` or `config/sync/system.security.yml`
+- Any task touching security-sensitive configuration (roles, permissions, authentication settings)
 - Tasks with vague acceptance criteria ("improve performance", "refactor X")
 
 If unsure, do not claim the issue. Leave it for a human.

@@ -27,6 +27,7 @@ docker compose exec web vendor/bin/phpunit $MODULE_PATH/tests/ \
 
 If `drush ai:validate` is available, also run:
 ```bash
+# Replace with your project's custom validation command if available
 docker compose exec web drush ai:validate-code phpcs $MODULE_PATH
 ```
 
