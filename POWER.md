@@ -28,10 +28,10 @@ This profile overrides two slash commands from the generic power:
 
 | Command | What changes |
 |---------|-------------|
-| `/auto-pilot run` | Quality checks use EC Europa Toolkit + Docker; commit format enforced as JIRA |
+| `/auto-pilot run` | Quality checks use EC Europa Toolkit + Docker; a Drupal-aware adversarial review gate runs before each MR; commit format enforced as JIRA |
 | `/auto-pilot fetch` | Fetches GitLab issues labeled `ai-ready` via GitLab REST API |
 
-The other commands (`dry-run`, `status`, `clean`) are inherited unchanged from the generic power.
+The other commands (`dry-run`, `status`, `clean`) are inherited unchanged from the generic power. `/auto-pilot status` surfaces the full status set, including `review-blocked` (CRITICAL review findings) and `needs-pr` (branch pushed, MR not yet created).
 
 ## Onboarding
 
@@ -41,7 +41,7 @@ Import `kiro-power-autonomous-dev` before this one. This profile adds EC Europa 
 
 ### Step 2: Configure GitLab credentials
 
-Add to `.auto-pilot/.env`:
+Add to `.worktrees/.env`:
 
 ```bash
 AUTOPILOT_REMOTE=origin
@@ -53,16 +53,22 @@ GITLAB_URL=https://gitlab.example.com
 GITLAB_PROJECT_ID=<numeric-project-id>
 ```
 
+> **Upgrading from `.auto-pilot/`?** The generic power renamed the runtime directory to
+> `.worktrees/` so `.env` tokens are never tracked. If you have an existing install:
+> remove in-flight worktrees (`git worktree remove .auto-pilot/<task-id>`), run
+> `mv .auto-pilot .worktrees`, and ensure `.worktrees/` is in `.gitignore`. The
+> `/auto-pilot` commands and `AUTOPILOT_*`/`GITLAB_*` env vars are unchanged.
+
 ### Step 3: Understand the Docker command pattern
 
-All validation commands run inside the Docker `web` container. The `.auto-pilot/` directory is inside the Docker volume mount, so no extra configuration is needed:
+All validation commands run inside the Docker `web` container. The `.worktrees/` directory is inside the Docker volume mount, so no extra configuration is needed:
 
 ```bash
 # Validate code in a worktree
-docker compose exec web vendor/bin/run toolkit:test-phpcs --paths=.auto-pilot/task-001/lib/modules/
+docker compose exec web vendor/bin/run toolkit:test-phpcs --paths=.worktrees/task-001/lib/modules/
 
 # Run PHPUnit for a module in the worktree
-docker compose exec web vendor/bin/phpunit .auto-pilot/task-001/lib/modules/my_module/tests/
+docker compose exec web vendor/bin/phpunit .worktrees/task-001/lib/modules/my_module/tests/
 ```
 
 ### Step 4: Label issues for autonomous pickup
@@ -75,6 +81,7 @@ In GitLab, add the `ai-ready` label to issues that are eligible for autonomous i
 - Running EC Europa quality gates in worktrees → `ec-europa-validation.md`
 - Creating GitLab MRs → `gitlab-mr-workflow.md`
 - Picking up and processing `ai-ready` issues → `ai-ready-issue-workflow.md`
+- Adversarially reviewing a branch before the MR → `agents/ec-europa-adversarial-reviewer.md`
 
 ## EC Europa Conventions
 
