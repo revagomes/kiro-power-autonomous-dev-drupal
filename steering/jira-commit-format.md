@@ -47,7 +47,7 @@ Commit after every meaningful change — never batch unrelated changes:
 ## Committing from a Worktree
 
 ```bash
-cd .auto-pilot/task-proj-123
+cd .worktrees/task-proj-123
 git add lib/modules/my_module/src/Service/RegistrationValidator.php
 git commit -m "PROJ-123: Add RegistrationValidator service skeleton."
 ```

@@ -10,6 +10,8 @@ Issues labeled `ai-ready` in GitLab are eligible for autonomous pickup. The orch
 
 > **Status**: The GitLab polling loop is planned. The manual task YAML workflow (from `kiro-power-autonomous-dev`) is the current implementation. This file documents the full intended workflow for when polling is enabled.
 
+> The runtime directory is `.worktrees/` (renamed from `.auto-pilot/` so `.env` is never tracked). See `POWER.md`.
+
 ## Issue Eligibility
 
 An issue is eligible for autonomous pickup if:
@@ -41,20 +43,20 @@ If unsure, do not claim the issue. Leave it for a human.
 ## Claim Workflow
 
 ```bash
-source .auto-pilot/.env
+source .worktrees/.env
 
 ISSUE_ID=123
 PROJECT_ID=$GITLAB_PROJECT_ID
 
 # 1. Assign the issue to the agent (claim it)
-curl --silent --fail \
+curl --silent --show-error --fail-with-body \
   --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
   --request PUT \
   "$GITLAB_URL/api/v4/projects/$PROJECT_ID/issues/$ISSUE_ID" \
   --data "assignee_ids[]=<agent-user-id>"
 
 # 2. Add ai-in-progress label, remove ai-ready
-curl --silent --fail \
+curl --silent --show-error --fail-with-body \
   --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
   --request PUT \
   "$GITLAB_URL/api/v4/projects/$PROJECT_ID/issues/$ISSUE_ID" \
@@ -65,19 +67,19 @@ curl --silent --fail \
 
 ```bash
 # Fetch all ai-ready issues with no assignee
-curl --silent --fail \
+curl --silent --show-error --fail-with-body \
   --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
   "$GITLAB_URL/api/v4/projects/$GITLAB_PROJECT_ID/issues?labels=ai-ready&assignee_id=None&state=opened" \
   | jq '.[] | {id: .iid, title: .title, description: .description}'
 ```
 
-The `/auto-pilot fetch` command writes eligible issues to `.auto-pilot/tasks.yaml` in the standard format.
+The `/auto-pilot fetch` command writes eligible issues to `.worktrees/tasks.yaml` in the standard format.
 
 ## After MR Creation
 
 ```bash
 # Remove ai-in-progress, add ai-review-ready
-curl --silent --fail \
+curl --silent --show-error --fail-with-body \
   --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
   --request PUT \
   "$GITLAB_URL/api/v4/projects/$PROJECT_ID/issues/$ISSUE_ID" \
@@ -90,14 +92,14 @@ If no MR is created within the configured timeout (default: 2 hours):
 
 ```bash
 # Release the issue — remove ai-in-progress, restore ai-ready, unassign
-curl --silent --fail \
+curl --silent --show-error --fail-with-body \
   --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
   --request PUT \
   "$GITLAB_URL/api/v4/projects/$PROJECT_ID/issues/$ISSUE_ID" \
   --data "assignee_ids[]=0&add_labels=ai-ready&remove_labels=ai-in-progress"
 ```
 
-Log the timeout to `.auto-pilot/orchestrator.log` with the issue ID and reason.
+Log the timeout to `.worktrees/orchestrator.log` with the issue ID and reason.
 
 ## Human Override
 
@@ -112,11 +114,11 @@ The agent must check for this before each commit and stop if the issue is no lon
 If implementation fails, log a comment on the issue before releasing it:
 
 ```bash
-curl --silent --fail \
+curl --silent --show-error --fail-with-body \
   --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
   --header "Content-Type: application/json" \
   --data "{\"body\": \"Autonomous implementation attempt failed.\n\nReason: PHPStan errors could not be resolved — type mismatch in RegistrationValidator::validate().\n\nThe issue has been released for human pickup.\"}" \
   "$GITLAB_URL/api/v4/projects/$PROJECT_ID/issues/$ISSUE_ID/notes"
 ```
 
-Never silently abandon a failed attempt.
+Never silently abandon a failed attempt. When logging the failure comment, keep it concise and free of internal infrastructure details — the comment is public-facing.

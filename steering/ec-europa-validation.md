@@ -6,48 +6,50 @@ inclusion: always
 
 ## Overview
 
-All quality checks run inside the Docker `web` container. Because `.auto-pilot/` is inside the Docker volume mount, worktree paths are accessible from the container without any extra configuration.
+All quality checks run inside the Docker `web` container. Because `.worktrees/` is inside the Docker volume mount, worktree paths are accessible from the container without any extra configuration.
+
+> The worktree directory is `.worktrees/`. Earlier versions used `.auto-pilot/`; the generic power renamed it so that `.env` (which holds forge tokens) is never tracked. See `POWER.md` for the one-time migration.
 
 ## PHPCS — Coding Standards
 
 ```bash
 # Check a module in the worktree
-docker compose exec web vendor/bin/run toolkit:test-phpcs --paths=.auto-pilot/task-001/lib/modules/
+docker compose exec web vendor/bin/run toolkit:test-phpcs --paths=.worktrees/task-001/lib/modules/
 
 # Direct invocation (fallback)
-docker compose exec web vendor/bin/phpcs --standard=phpcs.xml .auto-pilot/task-001/lib/modules/
+docker compose exec web vendor/bin/phpcs --standard=phpcs.xml .worktrees/task-001/lib/modules/
 
 # Auto-fix violations
-docker compose exec web vendor/bin/phpcbf --standard=phpcs.xml .auto-pilot/task-001/lib/modules/
+docker compose exec web vendor/bin/phpcbf --standard=phpcs.xml .worktrees/task-001/lib/modules/
 ```
 
 ## PHPStan — Static Analysis
 
 ```bash
 # Analyse a module in the worktree
-docker compose exec web vendor/bin/phpstan analyse .auto-pilot/task-001/lib/modules/my_module/
+docker compose exec web vendor/bin/phpstan analyse .worktrees/task-001/lib/modules/my_module/
 
 # With project config
-docker compose exec web vendor/bin/phpstan analyse --configuration=phpstan.neon .auto-pilot/task-001/lib/modules/
+docker compose exec web vendor/bin/phpstan analyse --configuration=phpstan.neon .worktrees/task-001/lib/modules/
 ```
 
 ## PHPMD — Mess Detection
 
 ```bash
-docker compose exec web vendor/bin/phpmd .auto-pilot/task-001/lib/modules/ text phpmd.xml
+docker compose exec web vendor/bin/phpmd .worktrees/task-001/lib/modules/ text phpmd.xml
 ```
 
 ## PHPUnit — Tests
 
 ```bash
 # Run tests for a specific module in the worktree
-docker compose exec web vendor/bin/phpunit .auto-pilot/task-001/lib/modules/my_module/tests/
+docker compose exec web vendor/bin/phpunit .worktrees/task-001/lib/modules/my_module/tests/
 
 # Run by group
-docker compose exec web vendor/bin/phpunit --group=my_module .auto-pilot/task-001/lib/modules/
+docker compose exec web vendor/bin/phpunit --group=my_module .worktrees/task-001/lib/modules/
 
 # With coverage
-docker compose exec web vendor/bin/phpunit --coverage-text .auto-pilot/task-001/lib/modules/my_module/tests/
+docker compose exec web vendor/bin/phpunit --coverage-text .worktrees/task-001/lib/modules/my_module/tests/
 ```
 
 ## AI Validation Commands (project-specific)
@@ -63,10 +65,10 @@ If no custom validation exists, the toolkit checks above are sufficient.
 
 ## Full Pre-MR Validation Sequence
 
-Run all checks before pushing and creating the MR:
+Run all checks before the adversarial review gate, push, and MR creation:
 
 ```bash
-WORKTREE=".auto-pilot/task-001"
+WORKTREE=".worktrees/task-001"
 MODULE_PATH="$WORKTREE/lib/modules/my_module"
 
 # 1. Coding standards
