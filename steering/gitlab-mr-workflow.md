@@ -6,12 +6,14 @@ inclusion: always
 
 ## Creating a Merge Request
 
-After pushing the branch, create an MR using `glab` CLI (preferred) or the REST API.
+After the adversarial review gate reports zero CRITICAL findings (see
+`agents/ec-europa-adversarial-reviewer.md`) and the branch is pushed, create an MR using
+`glab` CLI (preferred) or the REST API. Agents never merge their own work.
 
 ### Using `glab` CLI
 
 ```bash
-source .auto-pilot/.env
+source .worktrees/.env
 
 glab mr create \
   --source-branch feature/task-001-registration-validation \
@@ -36,9 +38,9 @@ docker compose exec web vendor/bin/phpunit lib/modules/my_module/tests/
 ### Using GitLab REST API
 
 ```bash
-source .auto-pilot/.env
+source .worktrees/.env
 
-curl --silent --fail \
+curl --silent --show-error --fail-with-body \
   --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
   --header "Content-Type: application/json" \
   --data "{
@@ -79,8 +81,20 @@ docker compose exec web vendor/bin/phpunit lib/modules/my_module/tests/
 ```
 
 ## Notes
-<Decisions made, trade-offs, or follow-up work needed.>
+<Decisions made, trade-offs, follow-up work, and a one-line acknowledgement of any MINOR
+adversarial-review findings.>
 ```
+
+## If MR Creation Fails
+
+- Log a one-line error to `.worktrees/orchestrator.log` — record the **HTTP status and a
+  short message only**. Never write the raw request body, raw response body, or any header
+  (they can echo back the `PRIVATE-TOKEN`, cookies, or the submitted payload).
+- Leave the branch pushed (never delete the subagent's work).
+- Mark the task `status: needs-pr` (not `done`) with a short `note:` describing the
+  failure. `done` is reserved for tasks whose MR was actually created.
+- `/auto-pilot status` surfaces `needs-pr` tasks so the human opens the MR manually from
+  the pushed branch.
 
 ## Labels
 
@@ -95,10 +109,10 @@ When creating the MR, set `labels: "ai-review-ready"` and remove `ai-in-progress
 ## Required Environment Variables
 
 ```bash
-# .auto-pilot/.env
+# .worktrees/.env
 GITLAB_TOKEN=<your-private-access-token>
 GITLAB_URL=https://gitlab.example.com
 GITLAB_PROJECT_ID=<numeric-project-id>
 ```
 
-Never commit these values. The `.auto-pilot/` directory is gitignored.
+Never commit these values. The `.worktrees/` directory is gitignored.
